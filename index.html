@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Timer Pro</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: rgba(10, 10, 15, 0.85);
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.4);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        /* Main Glass Container */
+        .app-container {
+            width: 240px;
+            height: 90px;
+            background: var(--bg-main);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            -webkit-app-region: drag;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .app-container:hover {
+            border-color: rgba(0, 242, 255, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Drag handle indicator */
+        .drag-bar {
+            position: absolute;
+            top: 6px;
+            width: 30px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        /* Content Labels */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
+            margin-bottom: 2px;
+            -webkit-app-region: drag;
+        }
+
+        .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        /* Timer Display */
+        .timer-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 34px;
+            font-weight: 500;
+            color: var(--text-main);
+            text-shadow: 0 0 20px var(--accent-glow);
+            letter-spacing: -1px;
+            margin-top: -2px;
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00f2ff, #7000ff);
+            width: 0%;
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: width 1s linear;
+        }
+
+        /* Settings Icon/Btn */
+        .settings-btn {
+            position: absolute;
+            top: 25px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            -webkit-app-region: no-drag;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 242, 255, 0.2);
+            color: var(--accent);
+        }
+
+        .settings-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            color: var(--text-dim);
+        }
+
+        /* Settings Panel (Overlay) */
+        .settings-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            -webkit-app-region: no-drag;
+        }
+
+        .settings-overlay.active {
+            transform: translateY(0);
+        }
+
+        .settings-overlay h2 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        input {
+            width: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            color: white;
+            padding: 4px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="drag-bar"></div>
+
+        <div class="settings-btn" id="open-settings">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+            </svg>
+        </div>
+
+        <div class="info-row">
+            <div class="label" id="ref-text">Cycle Start 13:40</div>
+        </div>
+
+        <div class="timer-display" id="timer">00:00:00</div>
+
+        <div class="progress-track">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <!-- Custom Settings UI -->
+        <div class="settings-overlay" id="settings-panel">
+            <h2>Set Reference Time</h2>
+            <div class="input-group">
+                <input type="number" id="input-h" min="0" max="23" placeholder="HH">
+                <span style="color:white">:</span>
+                <input type="number" id="input-m" min="0" max="59" placeholder="MM">
+            </div>
+            <div class="btn-row">
+                <button class="action-btn btn-cancel" id="close-settings">CANCEL</button>
+                <button class="action-btn btn-save" id="save-settings">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core Logic
+        let refHours = parseInt(localStorage.getItem('refHours')) || 13;
+        let refMinutes = parseInt(localStorage.getItem('refMinutes')) || 40;
+
+        const timerEl = document.getElementById('timer');
+        const progressEl = document.getElementById('progress');
+        const refTextEl = document.getElementById('ref-text');
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const openBtn = document.getElementById('open-settings');
+        const closeBtn = document.getElementById('close-settings');
+        const saveBtn = document.getElementById('save-settings');
+        const inputH = document.getElementById('input-h');
+        const inputM = document.getElementById('input-m');
+
+        function updateDisplay() {
+            const hStr = String(refHours).padStart(2, '0');
+            const mStr = String(refMinutes).padStart(2, '0');
+            refTextEl.textContent = `Cycle Start ${hStr}:${mStr}`;
+        }
+
+        // Logic to calculate remaining 5-hour cycle time
+        function runTimer() {
+            const now = new Date();
+            const cycleMs = 5 * 60 * 60 * 1000;
+
+            const refDate = new Date();
+            refDate.setHours(refHours, refMinutes, 0, 0);
+
+            let diff = now.getTime() - refDate.getTime();
+            let elapsed = diff % cycleMs;
+            if (elapsed < 0) elapsed += cycleMs;
+
+            const remaining = cycleMs - elapsed;
+
+            const h = Math.floor(remaining / 3600000);
+            const m = Math.floor((remaining % 3600000) / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+
+            timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            progressEl.style.width = `${(elapsed / cycleMs) * 100}%`;
+        }
+
+        // UI Interactions
+        openBtn.addEventListener('click', () => {
+            inputH.value = refHours;
+            inputM.value = refMinutes;
+            settingsPanel.classList.add('active');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            settingsPanel.classList.remove('active');
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const h = parseInt(inputH.value);
+            const m = parseInt(inputM.value);
+
+            if (!isNaN(h) && h >= 0 && h < 24 && !isNaN(m) && m >= 0 && m < 60) {
+                refHours = h;
+                refMinutes = m;
+                localStorage.setItem('refHours', h);
+                localStorage.setItem('refMinutes', m);
+                updateDisplay();
+                settingsPanel.classList.remove('active');
+            } else {
+                // Shake or visual feedback
+                settingsPanel.style.borderColor = 'red';
+                setTimeout(() => settingsPanel.style.borderColor = '', 500);
+            }
+        });
+
+        setInterval(runTimer, 1000);
+        runTimer();
+        updateDisplay();
+    </script>
+</body>
+
+</html>

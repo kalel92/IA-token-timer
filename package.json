@@ -1,0 +1,12 @@
+{
+  "name": "ia-token-timer",
+  "version": "1.0.0",
+  "description": "Timer always-on-top para control de tokens, sincronizado con ciclos de 5 horas.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^34.0.1"
+  }
+}
